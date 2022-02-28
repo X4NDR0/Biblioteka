@@ -5,7 +5,8 @@ namespace Biblioteka
     {
         static void Main(string[] args)
         {
-            LibraryService libraryService = new LibraryService();
+            SQLService sqlService = new SQLService();
+            LibraryService libraryService = new LibraryService(sqlService);
             libraryService.Menu();
         }
     }

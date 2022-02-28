@@ -5,16 +5,16 @@ namespace Biblioteka.Services
 {
     class LibraryService
     {
-        #region Enums
-        Options options;
-        #endregion
+        private SQLService _sqlService;
 
-        #region Servisi
-        private SQLService _sqlService = new SQLService();
-        #endregion
+        public LibraryService(SQLService sqlService)
+        {
+            _sqlService = sqlService;
+        }
 
         public void Menu()
         {
+            Options options;
             do
             {
                 Console.Clear();
@@ -25,7 +25,7 @@ namespace Biblioteka.Services
                 {
                     case Options.WriteAllBooks:
                         Console.Clear();
-                        WriteAllBooks(_sqlService.LoadBooks(_sqlService.LoadMember()));
+                        DisplayAllBooks(_sqlService.GetAllBooks(_sqlService.GetAllMembers()));
                         Console.WriteLine("Press any key to continue...");
                         Console.ReadLine();
                         Console.Clear();
@@ -33,7 +33,7 @@ namespace Biblioteka.Services
 
                     case Options.WriteAllMembers:
                         Console.Clear();
-                        WriteAllMembers(_sqlService.LoadMember());
+                        DisplayAllMembers(_sqlService.GetAllMembers());
                         Console.WriteLine("Press any key to continue...");
                         Console.ReadLine();
                         Console.Clear();
@@ -49,7 +49,7 @@ namespace Biblioteka.Services
 
                     case Options.AddMembers:
                         Console.Clear();
-                        _sqlService.AddMember();
+                        AddMember();
                         Console.WriteLine("Press any key to continue...");
                         Console.ReadLine();
                         Console.Clear();
@@ -57,7 +57,7 @@ namespace Biblioteka.Services
 
                     case Options.RemoveBook:
                         Console.Clear();
-                        _sqlService.RemoveBook();
+                        RemoveBook();
                         Console.WriteLine("Press any key to continue...");
                         Console.ReadLine();
                         Console.Clear();
@@ -65,7 +65,7 @@ namespace Biblioteka.Services
 
                     case Options.RemoveMember:
                         Console.Clear();
-                        _sqlService.RemoveMember();
+                        RemoveMember();
                         Console.WriteLine("Press any key to continue...");
                         Console.ReadLine();
                         Console.Clear();
@@ -73,7 +73,7 @@ namespace Biblioteka.Services
 
                     case Options.CheckBook:
                         Console.Clear();
-                        CheckBook(_sqlService.LoadMember());
+                        CheckBook();
                         Console.WriteLine("Press any key to continue...");
                         Console.ReadLine();
                         Console.Clear();
@@ -104,9 +104,99 @@ namespace Biblioteka.Services
             Console.Write("Option:");
         }
 
+        public void CheckBook()
+        {
+            List<Member> listaClanova = _sqlService.GetAllMembers();
+            List<Book> listaKnjiga = _sqlService.GetAllBooks(listaClanova);
+            Console.Write("Unesite ID knjige:");
+            int.TryParse(Console.ReadLine(), out int idKnjige);
+
+            Console.Clear();
+
+            Book book = listaKnjiga.Where(x => x.ID == idKnjige).FirstOrDefault();
+            if (book != null)
+            {
+                Member member = _sqlService.CheckBookSQL(book);
+                Console.WriteLine("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
+                if (member == null)
+                {
+                    Console.WriteLine("ID:" + book.ID + "\nNaziv:" + book.Name + "\nAutor:" + book.Author + "\nGodina izdanja:" + book.ReleaseYear + "\nKnjigu ne poseduje ni jedan clan.");
+                }
+                else
+                {
+                    Console.WriteLine("ID:" + book.ID + "\nNaziv:" + book.Name + "\nAutor:" + book.Author + "\nGodina izdanja:" + book.ReleaseYear + "\nKnjiga je kod clana pod ID-om:" + book.Member.ID);
+                }
+                Console.WriteLine("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
+            }
+            else
+            {
+                Console.WriteLine("Izabrana knjiga ne postoji!");
+            }
+        }
+
+        public void AddMember()
+        {
+            Console.Write("Unesite ime clana:");
+            string ime = Console.ReadLine();
+
+            Console.Write("Unesite prezime clana:");
+            string prezime = Console.ReadLine();
+
+            Console.Clear();
+
+            _sqlService.AddMemberSQL(new Member { Name = ime, Lastname = prezime });
+            Console.WriteLine("Clan je uspesno dodat u bazu podataka!");
+        }
+
+        public void RemoveMember()
+        {
+            List<Member> listaClanova = _sqlService.GetAllMembers();
+            DisplayAllMembers(listaClanova);
+            Console.Write("Unesite ID clana:");
+            int.TryParse(Console.ReadLine(), out int idClana);
+
+            Console.Clear();
+
+            Member member = listaClanova.Where(x => x.ID == idClana).FirstOrDefault();
+            if (member != null)
+            {
+                _sqlService.RemoveMemberSQL(member);
+                Console.WriteLine("Clan je uspesno izbrisan iz baze podataka!");
+            }
+            else
+            {
+                Console.WriteLine("Clan sa izabranim ID-om ne postoji!");
+                return;
+            }
+        }
+
+        public void RemoveBook()
+        {
+            List<Member> listaClanova = _sqlService.GetAllMembers();
+            List<Book> listaKnjiga = _sqlService.GetAllBooks(listaClanova);
+
+            DisplayAllBooks(listaKnjiga);
+            Console.Write("Unesite ID knjigu koju zelite da obrisete:");
+            int.TryParse(Console.ReadLine(), out int idKnjige);
+
+            Console.Clear();
+
+            Book book = listaKnjiga.Where(x => x.ID == idKnjige).FirstOrDefault();
+            if (book != null)
+            {
+                _sqlService.RemoveBookSQL(book);
+                Console.WriteLine("Knjiga je uspesno obrisana iz baze podataka!");
+            }
+            else
+            {
+                Console.WriteLine("Knjiga ne postoji!");
+                return;
+            }
+        }
+
         public void AddBook()
         {
-            List<Member> listaClanova = _sqlService.LoadMember();
+            List<Member> listaClanova = _sqlService.GetAllMembers();
             Console.Write("Unesite naziv knjige:");
             string naziv = Console.ReadLine();
 
@@ -117,7 +207,7 @@ namespace Biblioteka.Services
             int.TryParse(Console.ReadLine(), out int godinaIzdanja);
 
             Console.Clear();
-            WriteAllMembers(listaClanova);
+            DisplayAllMembers(listaClanova);
             Console.Write("Unesite ID clana koji poseduje knjigu,a ukoliko niko ne poseduje knjigu unesite 0:");
             int.TryParse(Console.ReadLine(), out int idClana);
 
@@ -127,27 +217,18 @@ namespace Biblioteka.Services
             if (idClana != 0)
             {
                 member = listaClanova.Where(x => x.ID == idClana).FirstOrDefault();
+                if (member == null)
+                {
+                    Console.WriteLine("Clan sa izabranim ID-om ne postoji!");
+                    return;
+                }
             }
 
-            if (idClana != 0 && member != null)
-            {
-                _sqlService.AddBookSQL(true, naziv, autor, godinaIzdanja, member);
-                Console.Clear();
-                Console.WriteLine("Knjiga je uspesno dodata u bazu podataka!");
-            }
-            else if (member == null && idClana == 0)
-            {
-                _sqlService.AddBookSQL(false, naziv, autor, godinaIzdanja, member);
-                Console.Clear();
-                Console.WriteLine("Knjiga je uspesno dodata u bazu podataka!");
-            }
-            else
-            {
-                Console.WriteLine("Clan sa izabranim ID-om ne postoji!");
-            }
+            Book book = new Book { Name = naziv, Author = autor, ReleaseYear = godinaIzdanja, Member = member };
+            _sqlService.AddBookSQL(book);
         }
 
-        public void WriteAllMembers(List<Member> listaClanova)
+        public void DisplayAllMembers(List<Member> listaClanova)
         {
             Console.WriteLine("=-=-=-=-=-=-=-=-=-=-=-=-=-=");
             foreach (Member member in listaClanova)
@@ -157,49 +238,20 @@ namespace Biblioteka.Services
             }
         }
 
-        public void WriteAllBooks(List<Book> listaKnjiga)
+        public void DisplayAllBooks(List<Book> listaKnjiga)
         {
             Console.WriteLine("=-=-=-=-=-=-=-=-=-=-=-=-=-=");
             foreach (Book book in listaKnjiga)
             {
                 if (book.Member is null)
                 {
-                    Console.WriteLine("ID:" + book.ID + "\nNaziv:" + book.Name + "\nAutor:" + book.Author + "\nGodina izdanja:" + book.ReleaseYear + "\nKnjigu ne poseduje ni jedan clan."); ;
+                    Console.WriteLine("ID:" + book.ID + "\nNaziv:" + book.Name + "\nAutor:" + book.Author + "\nGodina izdanja:" + book.ReleaseYear + "\nKnjigu ne poseduje ni jedan clan.");
                 }
                 else
                 {
                     Console.WriteLine("ID:" + book.ID + "\nNaziv:" + book.Name + "\nAutor:" + book.Author + "\nGodina izdanja:" + book.ReleaseYear + "\nKnjiga je kod clana pod ID-om:" + book.Member.ID);
                 }
                 Console.WriteLine("=-=-=-=-=-=-=-=-=-=-=-=-=-=");
-            }
-        }
-
-        public void CheckBook(List<Member> listaClanova)
-        {
-            List<Book> listaKnjiga = _sqlService.LoadBooks(listaClanova);
-
-            Console.Write("Unesite ID knjige:");
-            int.TryParse(Console.ReadLine(), out int idKnjige);
-
-            Console.Clear();
-
-            Console.WriteLine("=-=-=-=-=-=-=-=-=-=-=-=-=-=");
-            foreach (Book book in listaKnjiga)
-            {
-                if (book.ID == idKnjige)
-                {
-                    Book knjiga = listaKnjiga.Where(x => x.ID == idKnjige).FirstOrDefault();
-                    if (knjiga.Member != null)
-                    {
-                        Console.WriteLine("Knjigu poseduje clan:");
-                        Console.WriteLine("ID:" + knjiga.Member.ID + "\nIme:" + knjiga.Member.Name + "\nPrezime:" + knjiga.Member.Lastname);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Knjigu ne poseduje niko!");
-                    }
-                    Console.WriteLine("=-=-=-=-=-=-=-=-=-=-=-=-=-=");
-                }
             }
         }
     }

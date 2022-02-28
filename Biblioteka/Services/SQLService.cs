@@ -5,105 +5,99 @@ namespace Biblioteka.Services
 {
     public class SQLService
     {
-        #region Servisi
-        private LibraryService _libraryService;
-        #endregion
-
-        public void RemoveBook()
+        private string _connectionString = "Data Source=XANDRO\\SQLEXPRESS;Initial Catalog=Biblioteka;Integrated Security=true";
+        public void RemoveBookSQL(Book book)
         {
-            _libraryService.WriteAllBooks(LoadBooks(LoadMember()));
-            Console.Write("Unesite ID knjigu koju zelite da obrisete:");
-            int.TryParse(Console.ReadLine(), out int idKnjige);
-
-            Console.Clear();
-
             string command = "delete from Knjige where id=@id";
 
-            using (SqlConnection sqlConnection = new SqlConnection("Data Source=XANDRO\\SQLEXPRESS;Initial Catalog=Biblioteka;Integrated Security=true"))
+            using (SqlConnection sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
                 SqlCommand sqlCommand = new SqlCommand(command, sqlConnection);
-                sqlCommand.Parameters.AddWithValue("@id", idKnjige);
+                sqlCommand.Parameters.AddWithValue("@id", book.ID);
                 sqlCommand.ExecuteNonQuery();
             }
-
-            Console.WriteLine("Knjiga je uspesno obrisana iz baze podataka!");
         }
 
-        public void RemoveMember()
+        public void RemoveMemberSQL(Member member)
         {
-            _libraryService.WriteAllMembers(LoadMember());
-            Console.Write("Unesite ID clana:");
-            int.TryParse(Console.ReadLine(), out int idClana);
-
-            Console.Clear();
-
             string command = "delete from Clanovi where id=@id";
 
-            using (SqlConnection sqlConnection = new SqlConnection("Data Source=XANDRO\\SQLEXPRESS;Initial Catalog=Biblioteka;Integrated Security=true"))
+            using (SqlConnection sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
                 SqlCommand sqlCommand = new SqlCommand(command, sqlConnection);
-                sqlCommand.Parameters.AddWithValue("@id", idClana);
+                sqlCommand.Parameters.AddWithValue("@id", member.ID);
                 sqlCommand.ExecuteNonQuery();
             }
-            Console.WriteLine("Clan je uspesno izbrisan iz baze podataka!");
         }
 
-        public void AddBookSQL(bool bookNull, string naziv, string autor, int godinaIzdanja, Member member)
+        public void AddBookSQL(Book book)
         {
+            int? memberId = null;
             string command = "insert into Knjige(naziv,autor,godinaIzdanja,clanId)" +
                                 "values(@naziv,@autor,@godinaIzdanja,@clanId)";
 
-            using (SqlConnection sqlConnection = new SqlConnection("Data Source=XANDRO\\SQLEXPRESS;Initial Catalog=Biblioteka;Integrated Security=true"))
+            using (SqlConnection sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
                 SqlCommand sqlCommand = new SqlCommand(command, sqlConnection);
-                if (bookNull)
+
+                if (book.Member != null)
                 {
-                    sqlCommand.Parameters.AddWithValue("@naziv", naziv);
-                    sqlCommand.Parameters.AddWithValue("@autor", autor);
-                    sqlCommand.Parameters.AddWithValue("@godinaIzdanja", godinaIzdanja);
-                    sqlCommand.Parameters.AddWithValue("@clanId", member.ID);
+                    memberId = book.Member.ID;
                 }
-                else
-                {
-                    sqlCommand.Parameters.AddWithValue("@naziv", naziv);
-                    sqlCommand.Parameters.AddWithValue("@autor", autor);
-                    sqlCommand.Parameters.AddWithValue("@godinaIzdanja", godinaIzdanja);
-                    sqlCommand.Parameters.AddWithValue("@clanId", DBNull.Value);
-                }
+
+                sqlCommand.Parameters.AddWithValue("@naziv", book.Name);
+                sqlCommand.Parameters.AddWithValue("@autor", book.Author);
+                sqlCommand.Parameters.AddWithValue("@godinaIzdanja", book.ReleaseYear);
+                sqlCommand.Parameters.AddWithValue("@clanId", memberId);
                 sqlCommand.ExecuteNonQuery();
             }
         }
 
-        public void AddMember()
+        public Member CheckBookSQL(Book book)
         {
-            Console.Write("Unesite ime clana:");
-            string ime = Console.ReadLine();
+            Member member = null;
+            List<Member> listaClanova = GetAllMembers();
+            string command = "select clanId from Knjige where id = @bookId";
 
-            Console.Write("Unesite prezime clana:");
-            string prezime = Console.ReadLine();
-
-            string command = "insert into Clanovi(ime,prezime)" +
-                             "values(@ime,@prezime)";
-
-            using (SqlConnection connection = new SqlConnection("Data Source=XANDRO\\SQLEXPRESS;Initial Catalog=Biblioteka;Integrated Security=true"))
+            using (SqlConnection sqlConnection = new SqlConnection(_connectionString))
             {
-                SqlCommand cmd = new SqlCommand(command, connection);
-                cmd.Parameters.AddWithValue("@ime", ime);
-                cmd.Parameters.AddWithValue("@prezime", prezime);
-                cmd.ExecuteNonQuery();
+                sqlConnection.Open();
+                SqlCommand sqlCommand = new SqlCommand(command, sqlConnection);
+                sqlCommand.Parameters.AddWithValue("@bookId", book.ID);
+                SqlDataReader sqlDataReader = sqlCommand.ExecuteReader();
+                while (sqlDataReader.Read())
+                {
+                    if (book.Member != null)
+                    {
+                        member = listaClanova.Where(x => x.ID == sqlDataReader.GetInt32(0)).FirstOrDefault();
+                    }
+                }
+                return member;
             }
-
-            Console.Clear();
-            Console.WriteLine("Clan je uspesno dodat u bazu podataka!");
         }
 
-        public List<Book> LoadBooks(List<Member> listaClanova)
+        public void AddMemberSQL(Member member)
+        {
+            string command = "insert into Clanovi(ime,prezime)" +
+                                "values(@ime,@prezime)";
+
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+                SqlCommand cmd = new SqlCommand(command, connection);
+                cmd.Parameters.AddWithValue("@ime", member.Name);
+                cmd.Parameters.AddWithValue("@prezime", member.Lastname);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public List<Book> GetAllBooks(List<Member> listaClanova)
         {
             List<Book> listaKnjiga = new List<Book>();
-            using (SqlConnection connection = new SqlConnection("Data Source=XANDRO\\SQLEXPRESS;Initial Catalog=Biblioteka;Integrated Security=true"))
+            using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
                 SqlCommand command = new SqlCommand("select * from Knjige", connection); ;
@@ -129,10 +123,10 @@ namespace Biblioteka.Services
             return listaKnjiga;
         }
 
-        public List<Member> LoadMember()
+        public List<Member> GetAllMembers()
         {
             List<Member> listaClanova = new List<Member>();
-            using (SqlConnection connection = new SqlConnection("Data Source=XANDRO\\SQLEXPRESS;Initial Catalog=Biblioteka;Integrated Security=true"))
+            using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
                 SqlCommand command = new SqlCommand("select * from Clanovi", connection);
