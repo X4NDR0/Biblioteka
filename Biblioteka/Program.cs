@@ -1,7 +1,7 @@
 ﻿using Biblioteka.Services;
 namespace Biblioteka
 {
-    class Biblioteka
+    public class Biblioteka
     {
         static void Main(string[] args)
         {

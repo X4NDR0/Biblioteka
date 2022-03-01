@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Biblioteka.Services
 {
-    class LibraryService
+    public class LibraryService
     {
         private SQLService _sqlService;
 
