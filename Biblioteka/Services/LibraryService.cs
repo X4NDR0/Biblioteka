@@ -1,5 +1,6 @@
 ﻿using Biblioteka.Enums;
-using Biblioteka.Models;
+using Biblioteka.Facades.Sql.Contracts;
+using Biblioteka.Facades.Sql.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,11 +9,11 @@ namespace Biblioteka.Services
 {
     public class LibraryService
     {
-        private SQLService _sqlService;
+        private ISqlFacade _sqlFacade;
 
-        public LibraryService(SQLService sqlService)
+        public LibraryService(ISqlFacade sqlFacade)
         {
-            _sqlService = sqlService;
+            _sqlFacade = sqlFacade;
         }
 
         public void Menu()
@@ -28,7 +29,7 @@ namespace Biblioteka.Services
                 {
                     case Options.WriteAllBooks:
                         Console.Clear();
-                        DisplayAllBooks(_sqlService.GetAllBooks(_sqlService.GetAllMembers()));
+                        DisplayAllBooks(_sqlFacade.GetAllBooks(_sqlFacade.GetAllMembers()));
                         Console.WriteLine("Press any key to continue...");
                         Console.ReadLine();
                         Console.Clear();
@@ -36,7 +37,7 @@ namespace Biblioteka.Services
 
                     case Options.WriteAllMembers:
                         Console.Clear();
-                        DisplayAllMembers(_sqlService.GetAllMembers());
+                        DisplayAllMembers(_sqlFacade.GetAllMembers());
                         Console.WriteLine("Press any key to continue...");
                         Console.ReadLine();
                         Console.Clear();
@@ -109,8 +110,8 @@ namespace Biblioteka.Services
 
         public void CheckBook()
         {
-            List<Member> listaClanova = _sqlService.GetAllMembers();
-            List<Book> listaKnjiga = _sqlService.GetAllBooks(listaClanova);
+            List<Member> listaClanova = _sqlFacade.GetAllMembers();
+            List<Book> listaKnjiga = _sqlFacade.GetAllBooks(listaClanova);
             Console.Write("Unesite ID knjige:");
             int.TryParse(Console.ReadLine(), out int idKnjige);
 
@@ -119,7 +120,7 @@ namespace Biblioteka.Services
             Book book = listaKnjiga.Where(x => x.ID == idKnjige).FirstOrDefault();
             if (book != null)
             {
-                Member member = _sqlService.CheckBookSQL(book);
+                Member member = _sqlFacade.CheckBookSQL(book);
                 Console.WriteLine("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
                 if (member == null)
                 {
@@ -147,13 +148,13 @@ namespace Biblioteka.Services
 
             Console.Clear();
 
-            _sqlService.AddMemberSQL(new Member { Name = ime, Lastname = prezime });
+            _sqlFacade.AddMemberSQL(new Member { Name = ime, Lastname = prezime });
             Console.WriteLine("Clan je uspesno dodat u bazu podataka!");
         }
 
         public void RemoveMember()
         {
-            List<Member> listaClanova = _sqlService.GetAllMembers();
+            List<Member> listaClanova = _sqlFacade.GetAllMembers();
             DisplayAllMembers(listaClanova);
             Console.Write("Unesite ID clana:");
             int.TryParse(Console.ReadLine(), out int idClana);
@@ -163,7 +164,7 @@ namespace Biblioteka.Services
             Member member = listaClanova.Where(x => x.ID == idClana).FirstOrDefault();
             if (member != null)
             {
-                _sqlService.RemoveMemberSQL(idClana);
+                _sqlFacade.RemoveMemberSQL(idClana);
                 Console.WriteLine("Clan je uspesno izbrisan iz baze podataka!");
             }
             else
@@ -175,8 +176,8 @@ namespace Biblioteka.Services
 
         public void RemoveBook()
         {
-            List<Member> listaClanova = _sqlService.GetAllMembers();
-            List<Book> listaKnjiga = _sqlService.GetAllBooks(listaClanova);
+            List<Member> listaClanova = _sqlFacade.GetAllMembers();
+            List<Book> listaKnjiga = _sqlFacade.GetAllBooks(listaClanova);
 
             DisplayAllBooks(listaKnjiga);
             Console.Write("Unesite ID knjigu koju zelite da obrisete:");
@@ -187,7 +188,7 @@ namespace Biblioteka.Services
             Book book = listaKnjiga.Where(x => x.ID == idKnjige).FirstOrDefault();
             if (book != null)
             {
-                _sqlService.RemoveBookSQL(idKnjige);
+                _sqlFacade.RemoveBookSQL(idKnjige);
                 Console.WriteLine("Knjiga je uspesno obrisana iz baze podataka!");
             }
             else
@@ -199,7 +200,7 @@ namespace Biblioteka.Services
 
         public void AddBook()
         {
-            List<Member> listaClanova = _sqlService.GetAllMembers();
+            List<Member> listaClanova = _sqlFacade.GetAllMembers();
             Console.Write("Unesite naziv knjige:");
             string naziv = Console.ReadLine();
 
@@ -228,7 +229,7 @@ namespace Biblioteka.Services
             }
 
             Book book = new Book { Name = naziv, Author = autor, ReleaseYear = godinaIzdanja, Member = member };
-            _sqlService.AddBookSQL(book);
+            _sqlFacade.AddBookSQL(book);
         }
 
         public void DisplayAllMembers(List<Member> listaClanova)

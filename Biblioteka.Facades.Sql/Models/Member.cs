@@ -1,4 +1,4 @@
-﻿namespace Biblioteka.Models
+﻿namespace Biblioteka.Facades.Sql.Models
 {
     public class Member
     {

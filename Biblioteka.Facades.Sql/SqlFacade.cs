@@ -1,12 +1,13 @@
-﻿using Biblioteka.Models;
+﻿using Biblioteka.Facades.Sql.Contracts;
+using Biblioteka.Facades.Sql.Models;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 
-namespace Biblioteka.Services
+namespace Biblioteka.Facades.Sql
 {
-    public class SQLService
+    public class SqlFacade : ISqlFacade
     {
         private string _connectionString = "Data Source=XANDRO\\SQLEXPRESS;Initial Catalog=Biblioteka;Integrated Security=true";
         public void RemoveBookSQL(int bookId)
@@ -146,11 +147,11 @@ namespace Biblioteka.Services
                         string ime = memberReader["ime"].ToString();
                         string prezime = memberReader["prezime"].ToString();
                         Member member = new Member { ID = id, Name = ime, Lastname = prezime };
-                    listaClanova.Add(member);
+                        listaClanova.Add(member);
+                    }
+                    return listaClanova;
                 }
-                return listaClanova;
             }
         }
     }
-}
 }
