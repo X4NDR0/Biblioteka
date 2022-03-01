@@ -1,12 +1,15 @@
 ﻿using Biblioteka.Models;
+using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Linq;
 
 namespace Biblioteka.Services
 {
     public class SQLService
     {
         private string _connectionString = "Data Source=XANDRO\\SQLEXPRESS;Initial Catalog=Biblioteka;Integrated Security=true";
-        public void RemoveBookSQL(Book book)
+        public void RemoveBookSQL(int bookId)
         {
             string command = "delete from Knjige where id=@id";
 
@@ -14,12 +17,12 @@ namespace Biblioteka.Services
             {
                 sqlConnection.Open();
                 SqlCommand sqlCommand = new SqlCommand(command, sqlConnection);
-                sqlCommand.Parameters.AddWithValue("@id", book.ID);
+                sqlCommand.Parameters.AddWithValue("@id", bookId);
                 sqlCommand.ExecuteNonQuery();
             }
         }
 
-        public void RemoveMemberSQL(Member member)
+        public void RemoveMemberSQL(int memberId)
         {
             string command = "delete from Clanovi where id=@id";
 
@@ -27,14 +30,13 @@ namespace Biblioteka.Services
             {
                 sqlConnection.Open();
                 SqlCommand sqlCommand = new SqlCommand(command, sqlConnection);
-                sqlCommand.Parameters.AddWithValue("@id", member.ID);
+                sqlCommand.Parameters.AddWithValue("@id", memberId);
                 sqlCommand.ExecuteNonQuery();
             }
         }
 
         public void AddBookSQL(Book book)
         {
-            int? memberId = null;
             string command = "insert into Knjige(naziv,autor,godinaIzdanja,clanId)" +
                                 "values(@naziv,@autor,@godinaIzdanja,@clanId)";
 
@@ -42,6 +44,8 @@ namespace Biblioteka.Services
             {
                 sqlConnection.Open();
                 SqlCommand sqlCommand = new SqlCommand(command, sqlConnection);
+
+                int? memberId = null;
 
                 if (book.Member != null)
                 {
@@ -58,8 +62,6 @@ namespace Biblioteka.Services
 
         public Member CheckBookSQL(Book book)
         {
-            Member member = null;
-            List<Member> listaClanova = GetAllMembers();
             string command = "select clanId from Knjige where id = @bookId";
 
             using (SqlConnection sqlConnection = new SqlConnection(_connectionString))
@@ -67,15 +69,19 @@ namespace Biblioteka.Services
                 sqlConnection.Open();
                 SqlCommand sqlCommand = new SqlCommand(command, sqlConnection);
                 sqlCommand.Parameters.AddWithValue("@bookId", book.ID);
-                SqlDataReader sqlDataReader = sqlCommand.ExecuteReader();
-                while (sqlDataReader.Read())
+                using (SqlDataReader sqlDataReader = sqlCommand.ExecuteReader())
                 {
-                    if (book.Member != null)
+                    Member member = null;
+                    List<Member> listaClanova = GetAllMembers();
+                    while (sqlDataReader.Read())
                     {
-                        member = listaClanova.Where(x => x.ID == sqlDataReader.GetInt32(0)).FirstOrDefault();
+                        if (book.Member != null)
+                        {
+                            member = listaClanova.Where(x => x.ID == sqlDataReader.GetInt32(0)).FirstOrDefault();
+                        }
                     }
+                    return member;
                 }
-                return member;
             }
         }
 

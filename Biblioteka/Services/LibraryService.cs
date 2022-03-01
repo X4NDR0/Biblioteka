@@ -1,5 +1,8 @@
 ﻿using Biblioteka.Enums;
 using Biblioteka.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Biblioteka.Services
 {
@@ -160,7 +163,7 @@ namespace Biblioteka.Services
             Member member = listaClanova.Where(x => x.ID == idClana).FirstOrDefault();
             if (member != null)
             {
-                _sqlService.RemoveMemberSQL(member);
+                _sqlService.RemoveMemberSQL(idClana);
                 Console.WriteLine("Clan je uspesno izbrisan iz baze podataka!");
             }
             else
@@ -184,7 +187,7 @@ namespace Biblioteka.Services
             Book book = listaKnjiga.Where(x => x.ID == idKnjige).FirstOrDefault();
             if (book != null)
             {
-                _sqlService.RemoveBookSQL(book);
+                _sqlService.RemoveBookSQL(idKnjige);
                 Console.WriteLine("Knjiga je uspesno obrisana iz baze podataka!");
             }
             else
