@@ -11,11 +11,10 @@ namespace Biblioteka.Services
         private string _connectionString = "Data Source=XANDRO\\SQLEXPRESS;Initial Catalog=Biblioteka;Integrated Security=true";
         public void RemoveBookSQL(int bookId)
         {
-            string command = "delete from Knjige where id=@id";
-
             using (SqlConnection sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
+                string command = "delete from Knjige where id=@id";
                 SqlCommand sqlCommand = new SqlCommand(command, sqlConnection);
                 sqlCommand.Parameters.AddWithValue("@id", bookId);
                 sqlCommand.ExecuteNonQuery();
@@ -24,11 +23,10 @@ namespace Biblioteka.Services
 
         public void RemoveMemberSQL(int memberId)
         {
-            string command = "delete from Clanovi where id=@id";
-
             using (SqlConnection sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
+                string command = "delete from Clanovi where id=@id";
                 SqlCommand sqlCommand = new SqlCommand(command, sqlConnection);
                 sqlCommand.Parameters.AddWithValue("@id", memberId);
                 sqlCommand.ExecuteNonQuery();
@@ -37,12 +35,11 @@ namespace Biblioteka.Services
 
         public void AddBookSQL(Book book)
         {
-            string command = "insert into Knjige(naziv,autor,godinaIzdanja,clanId)" +
-                                "values(@naziv,@autor,@godinaIzdanja,@clanId)";
-
             using (SqlConnection sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
+                string command = "insert into Knjige(naziv,autor,godinaIzdanja,clanId)" +
+                                    "values(@naziv,@autor,@godinaIzdanja,@clanId)";
                 SqlCommand sqlCommand = new SqlCommand(command, sqlConnection);
 
                 int? memberId = null;
@@ -62,11 +59,10 @@ namespace Biblioteka.Services
 
         public Member CheckBookSQL(Book book)
         {
-            string command = "select clanId from Knjige where id = @bookId";
-
             using (SqlConnection sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
+                string command = "select clanId from Knjige where id = @bookId";
                 SqlCommand sqlCommand = new SqlCommand(command, sqlConnection);
                 sqlCommand.Parameters.AddWithValue("@bookId", book.ID);
                 using (SqlDataReader sqlDataReader = sqlCommand.ExecuteReader())
@@ -75,9 +71,10 @@ namespace Biblioteka.Services
                     List<Member> listaClanova = GetAllMembers();
                     while (sqlDataReader.Read())
                     {
+                        int.TryParse(sqlDataReader["clanId"].ToString(), out int id);
                         if (book.Member != null)
                         {
-                            member = listaClanova.Where(x => x.ID == sqlDataReader.GetInt32(0)).FirstOrDefault();
+                            member = listaClanova.Where(x => x.ID == id).FirstOrDefault();
                         }
                     }
                     return member;
@@ -87,11 +84,10 @@ namespace Biblioteka.Services
 
         public void AddMemberSQL(Member member)
         {
-            string command = "insert into Clanovi(ime,prezime)" +
-                                "values(@ime,@prezime)";
-
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
+                string command = "insert into Clanovi(ime,prezime)" +
+                                    "values(@ime,@prezime)";
                 connection.Open();
                 SqlCommand cmd = new SqlCommand(command, connection);
                 cmd.Parameters.AddWithValue("@ime", member.Name);
@@ -102,7 +98,6 @@ namespace Biblioteka.Services
 
         public List<Book> GetAllBooks(List<Member> listaClanova)
         {
-            List<Book> listaKnjiga = new List<Book>();
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
@@ -110,28 +105,33 @@ namespace Biblioteka.Services
 
                 using (SqlDataReader bookReader = command.ExecuteReader())
                 {
+                    List<Book> listaKnjiga = new List<Book>();
                     while (bookReader.Read())
                     {
+                        int.TryParse(bookReader["id"].ToString(), out int id);
+                        string naziv = bookReader["naziv"].ToString();
+                        string autor = bookReader["autor"].ToString();
+                        int.TryParse(bookReader["godinaIzdanja"].ToString(), out int godinaIzdanja);
+                        int.TryParse(bookReader["clanId"].ToString(), out int clanId);
                         if (bookReader.GetValue(4) != DBNull.Value)
                         {
-                            Member member = listaClanova.Where(x => x.ID == bookReader.GetInt32(4)).FirstOrDefault();
-                            Book book = new Book { ID = bookReader.GetInt32(0), Name = bookReader.GetString(1), Author = bookReader.GetString(2), ReleaseYear = bookReader.GetInt32(3), Member = member };
+                            Member member = listaClanova.Where(x => x.ID == clanId).FirstOrDefault();
+                            Book book = new Book { ID = id, Name = naziv, Author = autor, ReleaseYear = godinaIzdanja, Member = member };
                             listaKnjiga.Add(book);
                         }
                         else
                         {
-                            Book book = new Book { ID = bookReader.GetInt32(0), Name = bookReader.GetString(1), Author = bookReader.GetString(2), ReleaseYear = bookReader.GetInt32(3) };
+                            Book book = new Book { ID = id, Name = naziv, Author = autor, ReleaseYear = godinaIzdanja };
                             listaKnjiga.Add(book);
                         }
                     }
+                    return listaKnjiga;
                 }
             }
-            return listaKnjiga;
         }
 
         public List<Member> GetAllMembers()
         {
-            List<Member> listaClanova = new List<Member>();
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
@@ -139,14 +139,18 @@ namespace Biblioteka.Services
 
                 using (SqlDataReader memberReader = command.ExecuteReader())
                 {
+                    List<Member> listaClanova = new List<Member>();
                     while (memberReader.Read())
                     {
-                        Member member = new Member { ID = memberReader.GetInt32(0), Name = memberReader.GetString(1), Lastname = memberReader.GetString(2) };
-                        listaClanova.Add(member);
-                    }
+                        int.TryParse(memberReader["id"].ToString(), out int id);
+                        string ime = memberReader["ime"].ToString();
+                        string prezime = memberReader["prezime"].ToString();
+                        Member member = new Member { ID = id, Name = ime, Lastname = prezime };
+                    listaClanova.Add(member);
                 }
+                return listaClanova;
             }
-            return listaClanova;
         }
     }
+}
 }
