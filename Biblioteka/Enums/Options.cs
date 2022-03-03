@@ -9,6 +9,8 @@
         RemoveBook = 5,
         RemoveMember = 6,
         CheckBook = 7,
+        GetMemberByID = 8,
+        GetBookByID = 9,
         Exit = 0,
     }
 }

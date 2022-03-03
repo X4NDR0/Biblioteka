@@ -83,6 +83,22 @@ namespace Biblioteka.Services
                         Console.Clear();
                         break;
 
+                    case Options.GetMemberByID:
+                        Console.Clear();
+                        GetMemberByID();
+                        Console.WriteLine("Press any key to continue...");
+                        Console.ReadLine();
+                        Console.Clear();
+                        break;
+
+                    case Options.GetBookByID:
+                        Console.Clear();
+                        GetBookByID();
+                        Console.WriteLine("Press any key to continue...");
+                        Console.ReadLine();
+                        Console.Clear();
+                        break;
+
                     case Options.Exit:
                         Environment.Exit(1);
                         break;
@@ -102,10 +118,35 @@ namespace Biblioteka.Services
             Console.WriteLine("4.Add member");
             Console.WriteLine("5.Remove book");
             Console.WriteLine("6.Remove member");
-            Console.WriteLine("7.Provera knjige");
+            Console.WriteLine("7.Check book");
+            Console.WriteLine("8.Find member by id");
+            Console.WriteLine("9.Find book by id");
             Console.WriteLine("0.Exit");
 
             Console.Write("Option:");
+        }
+
+        public void GetMemberByID()
+        {
+            Console.Write("Unesite ID clana:");
+            int.TryParse(Console.ReadLine(), out int idClana);
+
+            Console.Clear();
+
+            Member member = _sqlFacade.GetMemberByID(idClana);
+            if (member != null)
+            {
+                Console.WriteLine("ID:" + member.ID + "\nIme:" + member.Name + "\nPrezime:" + member.Lastname);
+            }
+            else
+            {
+                Console.WriteLine("Clan ne postoji!");
+            }
+        }
+
+        public void GetBookByID()
+        {
+
         }
 
         public void CheckBook()

@@ -10,7 +10,8 @@ namespace Biblioteka.Facades.Sql
     public class SqlFacade : ISqlFacade
     {
         private string _connectionString = "Data Source=XANDRO\\SQLEXPRESS;Initial Catalog=Biblioteka;Integrated Security=true";
-        public void RemoveBookSQL(int bookId)
+
+        public bool RemoveBookSQL(int bookId)
         {
             using (SqlConnection sqlConnection = new SqlConnection(_connectionString))
             {
@@ -19,10 +20,11 @@ namespace Biblioteka.Facades.Sql
                 SqlCommand sqlCommand = new SqlCommand(command, sqlConnection);
                 sqlCommand.Parameters.AddWithValue("@id", bookId);
                 sqlCommand.ExecuteNonQuery();
+                return true;
             }
         }
 
-        public void RemoveMemberSQL(int memberId)
+        public bool RemoveMemberSQL(int memberId)
         {
             using (SqlConnection sqlConnection = new SqlConnection(_connectionString))
             {
@@ -31,10 +33,11 @@ namespace Biblioteka.Facades.Sql
                 SqlCommand sqlCommand = new SqlCommand(command, sqlConnection);
                 sqlCommand.Parameters.AddWithValue("@id", memberId);
                 sqlCommand.ExecuteNonQuery();
+                return true;
             }
         }
 
-        public void AddBookSQL(Book book)
+        public bool AddBookSQL(Book book)
         {
             using (SqlConnection sqlConnection = new SqlConnection(_connectionString))
             {
@@ -55,6 +58,7 @@ namespace Biblioteka.Facades.Sql
                 sqlCommand.Parameters.AddWithValue("@godinaIzdanja", book.ReleaseYear);
                 sqlCommand.Parameters.AddWithValue("@clanId", memberId);
                 sqlCommand.ExecuteNonQuery();
+                return true;
             }
         }
 
@@ -83,7 +87,7 @@ namespace Biblioteka.Facades.Sql
             }
         }
 
-        public void AddMemberSQL(Member member)
+        public bool AddMemberSQL(Member member)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
@@ -94,6 +98,56 @@ namespace Biblioteka.Facades.Sql
                 cmd.Parameters.AddWithValue("@ime", member.Name);
                 cmd.Parameters.AddWithValue("@prezime", member.Lastname);
                 cmd.ExecuteNonQuery();
+                return true;
+            }
+        }
+
+        public Member GetMemberByID(int memberId)
+        {
+            using (SqlConnection sqlConnection = new SqlConnection(_connectionString))
+            {
+                sqlConnection.Open();
+                string command = "select id,ime,prezime from Clanovi where id = @memberId";
+                SqlCommand sqlCommand = new SqlCommand(command, sqlConnection);
+                sqlCommand.Parameters.AddWithValue("@memberId", memberId);
+                using (SqlDataReader reader = sqlCommand.ExecuteReader())
+                {
+                    Member member = null;
+                    while (reader.Read())
+                    {
+                        int.TryParse(reader["id"].ToString(), out int id);
+                        string ime = reader["ime"].ToString();
+                        string prezime = reader["prezime"].ToString();
+                        member = new Member { ID = id, Name = ime, Lastname = prezime };
+                    }
+                    return member;
+                }
+            }
+        }
+
+        public Book GetBookByID(int bookId)
+        {
+            using (SqlConnection sqlConnection = new SqlConnection(_connectionString))
+            {
+                sqlConnection.Open();
+                string command = "select id,naziv,autor,godinaIzdanja,clanId from Knjige where id = @bookId";
+                SqlCommand sqlCommand = new SqlCommand(command, sqlConnection);
+                sqlCommand.Parameters.AddWithValue("@bookId", bookId);
+                using (SqlDataReader reader = sqlCommand.ExecuteReader())
+                {
+                    Book book = null;
+                    while (reader.Read())
+                    {
+                        int.TryParse(reader["id"].ToString(), out int id);
+                        string naziv = reader["naziv"].ToString();
+                        string autor = reader["autor"].ToString();
+                        int.TryParse(reader["godinaIzdanja"].ToString(),out int godinaIzdanja);
+                        int.TryParse(reader["clanId"].ToString(),out int clanId);
+                        Member member = GetMemberByID(clanId);
+                        book = new Book { ID = id, Name = naziv, Author = autor, ReleaseYear = godinaIzdanja, Member = member };
+                    }
+                    return book;
+                }
             }
         }
 

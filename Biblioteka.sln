@@ -5,7 +5,9 @@ VisualStudioVersion = 17.0.32126.317
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biblioteka", "Biblioteka\Biblioteka.csproj", "{9E0C95AC-A571-4B50-B862-AA48CDE51FB3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Biblioteka.Facades.Sql", "Biblioteka.Facades.Sql\Biblioteka.Facades.Sql.csproj", "{2F721EB6-0516-4146-A87D-830AED494BD1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biblioteka.Facades.Sql", "Biblioteka.Facades.Sql\Biblioteka.Facades.Sql.csproj", "{2F721EB6-0516-4146-A87D-830AED494BD1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLUnitTest", "SQLUnitTest\SQLUnitTest.csproj", "{BF0F330C-C5AB-4CCB-A739-15D2374FDEF7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{2F721EB6-0516-4146-A87D-830AED494BD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2F721EB6-0516-4146-A87D-830AED494BD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2F721EB6-0516-4146-A87D-830AED494BD1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF0F330C-C5AB-4CCB-A739-15D2374FDEF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF0F330C-C5AB-4CCB-A739-15D2374FDEF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF0F330C-C5AB-4CCB-A739-15D2374FDEF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF0F330C-C5AB-4CCB-A739-15D2374FDEF7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
